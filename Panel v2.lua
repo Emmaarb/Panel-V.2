@@ -326,41 +326,40 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
 	end
 end)
 -- ==========================
--- NOCLIP
+-- NOCLIP (CORREGIDO)
 -- ==========================
 local noclipEnabled = false
 local noclipButton = createButton("Noclip: OFF")
+local originalCollisions = {} -- tabla para guardar CanCollide original
 
 noclipButton.MouseButton1Click:Connect(function()
-	noclipEnabled = not noclipEnabled
-	if noclipEnabled then
-		noclipButton.Text = "Noclip: ON"
-	else
-		noclipButton.Text = "Noclip: OFF"
-	end
+    noclipEnabled = not noclipEnabled
+    if noclipEnabled then
+        noclipButton.Text = "Noclip: ON"
+        local character = player.Character
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    originalCollisions[part] = part.CanCollide
+                    part.CanCollide = false
+                end
+            end
+        end
+    else
+        noclipButton.Text = "Noclip: OFF"
+        local character = player.Character
+        if character then
+            for part, value in pairs(originalCollisions) do
+                if part and part:IsA("BasePart") then
+                    part.CanCollide = value
+                end
+            end
+        end
+        -- limpiar tabla
+        originalCollisions = {}
+    end
 end)
 
-RunService.Stepped:Connect(function()
-	if noclipEnabled then
-		local character = player.Character
-		if character then
-			for _, part in pairs(character:GetDescendants()) do
-				if part:IsA("BasePart") and part.CanCollide then
-					part.CanCollide = false
-				end
-			end
-		end
-	else
-		local character = player.Character
-		if character then
-			for _, part in pairs(character:GetDescendants()) do
-				if part:IsA("BasePart") then
-					part.CanCollide = true
-				end
-			end
-		end
-	end
-end)
 -- ==========================
 -- SPEED BOOST
 -- ==========================
@@ -492,4 +491,3 @@ xrayButton.MouseButton1Click:Connect(function()
 		originalTransparency = {}
 	end
 end)
-
